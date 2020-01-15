@@ -1,0 +1,102 @@
+<AskDjango>
+
+
+01.개발환경 구축하기
+
+* 웹 프레임워크의 필요성
+웹 서비스의 필요성 - 서버의 역할, 모든 서비스의 근간
+만들 수 있는 것 - 웹 서비스, 앱 서버, 챗봇 서비스
+웹 프레임워크 - 웹서비스를 만들 때마다 반복되는 것들을 표준화해서 묶어놓음
+
+* 다양한 파이썬 웹프레임워크
+- Django : 백엔드 개발에 필요한 거의 모든 기능 제공(full stack framework)
+- Flask : 백엔드 개발에 필요한 일부분의 기능 제공(micro framework)
+- Pyramid
+- Bottle
+
+* Django의 강점
+1. Python 생태계(크롤링, 자동화, 머신러닝 코드와 같은 언어)
+2. full stack web framework
+
+* 웹서비스 개발파트
+- 백엔드 개발 (서비스 중심)
+- 서버 운영
+- 프론트엔드 개발
+- 앱 개발
+
+* 기본 생성된 파일/디렉토리 목록
+piro12-Django : 프로젝트명(이름 변경 가능)
+manage.py - 명령행을 통해 각종 장고 명령 수행
+mysite - 프로젝트명(함부로 수정 x)
+__init__.py
+settings.py - 현재 프로젝트의 장고 기본설정, 새롭게 지정할 설정들
+urls.py - 최상의 URL 설정
+wsgi.py - 실서비스에서의 웹서비스 진입점
+
+
+02. 장고의 주요 구성 요소
+* 장고의 주요 기능(본코스)
+1. Function Based Views : 함수(호출 가능한 객체)로 HTTP 요청 초리
+2. Models : DB와의 인터페이스
+3. Templates : 복잡한 문자열 조합을 보다 용이하게 해줌(주로 문자열 조합 목적)
+4. Admin : DB 레코드 관리 UI
+5. Logging : 다양한 경로로 메세지 로깅
+6. Static files : 개발 목적으로의 정적인 파일 관리
+7. Message framework : 유저에게 1회성 메세지 노출 목적
+
+* 장고의 주요 기능(별도 코스)
+1. Class Based Views : 클래스로 함수 기반 뷰 만들기
+2. Forms : 입력폼 생성, 입력값 유효성 검사 및 DB로의 저장
+3. 테스팅
+4. 국제화 & 지역화
+5. 캐싱
+6. Geographic : 위치 검색 기능(DB의 Geo 기능 활용 - PostgreSQL 중심)
+7. Sending Emails
+8. Syndication Feeds (RSS/Atom)
+9. Sitemaps
+
+* 웹 애플리케이션 기본 구조
+클라이언트 - 웹 브라우저
+서버 - 프레임워크로 만드는 웹 서버(Django), DB 서버, 캐시 서버
+
+웹 서버(Django) - URLConf : URL 별로 호출할 함수를 리스트에 등록
+              - 뷰 : URL에 맞춰 호출된 함수(모델을 통해 DB서버와 인터페이싱)
+              - 모델 : 파이썬 코드로 DB와 통신
+              - 템플릿 엔진 : 복잡한 문자열을 손쉽게 조합(문자열 렌더링 엔진)
+
+* 모델 예시
+shop/models.py
+from django.db import models
+class Item(models.Model):
+    name = models.CharField(max_length=100)
+    desc = models.TextField(blank=True)    # blank=True : 빈칸이어도 된다다
+    price = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)   # auto_now_add : add될 당시의 현재 시간 자동 저장
+    updated_at = models.DateTimeField(auto_now=True)   # auto_now : 저장될 때마다 시간 자동 저장
+
+* URLConf 예시
+shop/urls.py
+from django.urls import path
+from shop import views
+app_name = 'shop'
+urlpatterns = [
+    path('shop/', views.item_list),     # URL과 함수 연결
+]
+
+* 뷰 예시
+장고앱1/views.py
+from django.shortcuts import render from shop.models import Item
+def item_list(request):
+    qs = Item.objects.all()    # DB로부터 Item목록을 Fetch할 예정
+    return render(request, 'shop/item_list.html', {
+        'item_list': qs,
+    })
+
+* 템플릿 예시
+shop/templates/shop/item_list.html
+
+
+03. 장고 앱
+* 장고 앱의 필요성
+현재 프로젝트의 블로그 기능을 다른 프로젝트에서도 사용하려할 때
+python manage.py startapp <앱이름>  :  기본 앱템플릿 생성 명령
