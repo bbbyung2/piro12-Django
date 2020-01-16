@@ -336,3 +336,68 @@ Item 모델 정의
 마이그레이션 파일 적용
 DB 확인
 
+
+10.장고 모델 필드
+* 기본 지원하는 모델필드 타입
+• Primary Key: AutoField, BigAutoField
+• 문자열: CharField, TextField, SlugField(URL로 사용되는 기사 title)
+• 날짜/시간: DateField, TimeField, DateTimeField, DurationField
+• 참/거짓: BooleanField, NullBooleanField
+• 숫자: IntegerField, SmallIntegerField, PositiveIntegerField,
+PositiveSmallIntegerfield, BigIntegerField, DecimalField, FloatField
+• 파일: BinaryField, FileField, ImageField, FilePathField
+
+* 기본 지원하는 모델필드 타입
+• 이메일: EmailField
+• URL: URLField
+• UUID: UUIDField
+• 아이피: GenericIPAddressField
+• Relationship Types
+• ForeignKey
+• ManyToManyField
+• OneToOneField
+• 그리고, 다양한 커스텀 필드들
+
+* 모델필드들은 DB 필드타입을 반용
+Varchar 필드타입 -> CharField, SlugField, URLField, EmailField 등
+같은 모델필드여도 DB에 따라 다른 타입으로 생성될수도 있음!
+
+* 자주 쓰는 필드 공통 옵션
+• blank : 파이썬 validation시에 empty 허용 여부 (디폴트: False)  - blank, null 모두 False일땐 꼭 값이 있어야 함
+• null (DB 옵션) : null 허용 여부 (디폴트: False)
+• db_index (DB 옵션) : 인덱스 필드 여부 (디폴트: False)
+• default : 디폴트 값 지정, 혹은 값을 리턴해줄 함수 지정
+    사용자에게 디폴트값을 제공코자 할 때
+• unique (DB 옵션) : 현재 테이블 내에서 유일성 여부 (디폴트: False)
+• choices : select 박스 소스로 사용
+• validators : validators를 수행할 함수를 다수 지정
+    모델 필드에 따라 고유한 validators들이 등록 (ex- 이메일만 받기)
+• verbose_name : 필드 레이블, 미지정시 필드명이 사용
+• help_text : 필드 입력 도움말
+
+* tip
+설계한 DB 구조에 따라 최대한 필드타입을 타이트하게 지정해주는 것이 입력값 오류를 막을 수 있음
+ORM은 SQL쿼리를 만들어주는 역할일 뿐, DB엔진에 대한 깊은 이해 필요
+
+
+11.마이그레이션을 통한 데이터베이스 스키마 관리
+*Migrations
+- makemigrations : 마이그레이션 파일 생성
+- migrate : 지정 DB에 마이그레이션 적용
+- showmigrations : 마이그레이션 적용 현황 출력
+- sqlmigrate : 지정 마이그레이션의 SQL 내역 출력(실제 DB에 반영은 x)
+
+*Migration 파일
+DB에 어떤 변화를 가하는 Operation들 나열(migration만 하면 빈 테이블 생성)
+대개 모델로부터 자동 생성 -> makemigrations 명령
+    모델 참조없이 빈 마이그레이션 파일 만들어서 직접 채워넣기도 함
+주의) 같은 Migration파일이라도 DB종류에 따라 다른 SQL 생성
+
+* 마이그레이션 파일 생성 및 적용
+앱/models.py, 마이그레이션 파일, 데이터베이스 서버
+모델 변경내역,    마이그레이션 파일,  DB에 적용
+            생성된 마이그레이션 파일 내역 확인(의도에 맞게 생성되었는지)
+            migrate하지 않은 migration파일은 언제든 삭제하고 새로 만들어도 되지만
+            migrate한 migration 파일은 절대 삭제하면 x
+모델 변경내역 -> 마이그레이션 파일에 적용 -> DB에 적용
+버그 있을 때 롤백해야 하는데 migrate 명령 통해서 함
