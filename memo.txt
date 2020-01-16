@@ -234,4 +234,31 @@ content_type='application/vnd.ms-excel'
 
 07.적절한 HTTP 상태코드로 응답하기
 * HTTP 상태코드
+웹 서버는 적절한 상태코드로 응답해야 함
 각 HttpResponse 클래스마다 고유한 status_code가 할당
+REST API(Web API)를 만들 때 특히 유용
+
+* 대표적인 상태코드
+- 200번대 : 성공(200)
+- 300번대 : 요청을 마치기 위해 추가 동작을 취해야 함
+- 400번대 : 클라이언트 측 오류
+- 500번대 : 서버 측 오류
+
+* 200에 응답하는 몇 가지 예
+HttpResponse(문자열, 엑셀, 이미지 데이터)
+render
+JsonResponse
+
+* 302에 응답하는 몇 가지 예
+HttpResponseRedirect : URL reverse 적용(특정 앱의 namespace의 패턴이 실제로 가리키는 URL을 찾아줌)
+redirect
+
+* 404에 응답하는 몇 가지 예
+Item.objects.get
+except Item.DoesNotExist:
+    raise Http404
+    or
+    return HttpResponseNotFound()   : 잘 안 씀
+
+* 500에 응답하는 몇 가지 예(뷰에서 미처 잡지못한 오류)
+지정 조건의 Item 레코드가 없을 때, 2개 이상 있을 때
