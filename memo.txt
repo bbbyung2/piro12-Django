@@ -229,4 +229,9 @@ content_type='text/csv'
 * Pandas를 통한 엑셀 응답 생성
 content_type='application/vnd.ms-excel'
 
-*
+* Pillow를 통한 이미지 응답 생성
+
+
+07.적절한 HTTP 상태코드로 응답하기
+* HTTP 상태코드
+각 HttpResponse 클래스마다 고유한 status_code가 할당
