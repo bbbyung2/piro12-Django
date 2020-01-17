@@ -524,3 +524,7 @@ LIMIT -> stop - start
 step은 쿼리에 대응 x (사용 비추천)
 
 * 역순 슬라이싱 대응하기
+reversed(qs.reverse()[:10])
+
+
+14.모델을 통한 데이터 생성/수정/삭제

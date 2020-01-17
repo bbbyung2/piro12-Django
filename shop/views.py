@@ -1,7 +1,5 @@
 from django.http import HttpResponse
 from django.shortcuts import render
-
-# Create your views here.
 from shop.models import Item
 
 
@@ -13,7 +11,7 @@ def item_list(request):
 
     q = request.GET.get('q', '')
     if q:
-        qs = qs.filter(name__icontatins=q)
+        qs = qs.filter(name__icontains=q)
     return render(request, 'shop/item_list.html', {
         'item_list': qs,
         'q': q,
