@@ -464,3 +464,63 @@ admin 내 검색UI를 통해, DB를 통한 where 쿼리 대상 필드 리스트
 
 * list_filter 속성 정의 (필터 옵션 생성)
 지정 필드값으로 필터링 옵션 제공
+
+
+13.모델을 통한 데이터 조회
+* Model Manager (DB 질의 인터페이스 제공)
+디폴트 Manager로서 ModelCls.objects가 제공
+ModelCls.objects.all() - Query Set이 만들어짐 (실행이 지연됨)
+ModelCls.objects.create() - 실행이 즉시 됨
+
+*Query Set (순회가능한 객체) Iterable
+SQL을 생성해주는 인터페이스
+Chaining을 지원해줌
+Post.objects.all().filter().exclude().filter()
+Query Set은 Lazy한 속성(Query Set을 만드는 동안에는 DB접근 x, 실제로 데이터 필요할 때 접근)
+데이터가 필요한 시점 : print(queryset), list(queryset), for instance in queryset: print(instance)
+
+* 다양한 조회요청 방법
+- 조건을 추가한 Queryset, 획득할 준비
+queryset.filter(...) -> queryset (조건을 여러개 넣을 수 있음) and 이용
+queryset.exclude(...) -> queryset - not 이용
+- 특정 모델객체 1개 획득을 시도 (DB로의 접근)
+queryset[숫자인덱스] -> 모델 객체 혹은 예외발생
+queryset.get(...) -> 1개를 가져오겠다 (filter에서 쓰는 조건 똑같이 가능), 모델객체 혹은 0개나 2개 이상 예외발생
+queryset.first() -> 모델 객체 혹은 None
+queryset.last() -> 모델 객체 혹은 None
+
+* filter <-> exclude
+SELECT query에 WHERE 조건 추가
+인자로 필드명=조건값 지정
+1개 이상의 인자 지정 -> 모두 AND 조건으로 묶임
+OR 조건을 묶으려면 django.db.models.Q 활용 (&, |와 같은 비트 연산자 활용)
+
+* 필드 타입별 다양한 조건 매칭 (DB마다 생성되는 SQL이 다름)
+- 숫자/날짜/시간 필드 (le, lte, gt, gte)
+필드명__lt = 조건값 -> 필드명 < 조건값
+- 문자열 필드
+필드명__startswith = 조건값 -> 필드명 LIKE "조건값%"
+
+* 정렬 조건 추가 (SELECT 쿼리에 "ORDER BY" 추가)
+추가하지 않으면 일관된 순서를 보장받을 수 없음
+DB에서 다수 필드에 대한 정렬 지원 (but 단일 필드로 하는 것이 성능에 이익)
+시간순/역순 정렬이 필요할 경우 id 필드를 활용 (AutoField)
+- 정렬 조건을 지정하는 2가지 방법
+1. 모델 클래스의 Meta 속성으로 ordering 설정 : list로 지정 (추천)
+2. 모든 queryset에 orderby(...)에 지정
+
+* 정렬 지정하기
+1. 모델에서 지정한 경우 (추천)
+Item class 안에 Meta class 생성
+ordering = ['id'] 오름차순, ['-id'] 내림차순
+2. 모델에서 지정 안했을 경우
+
+* Queryset에 범위 조건 추가
+- slicing을 통한 범위조건 추가 (SELECT 쿼리에 "OFFSET/LIMIT" 추가)
+str/list/tuple 에서의 슬라이싱과 거의 유사 (역순은 x)
+객체[start:stop:step]
+OFFSET -> start
+LIMIT -> stop - start
+step은 쿼리에 대응 x (사용 비추천)
+
+* 역순 슬라이싱 대응하기
