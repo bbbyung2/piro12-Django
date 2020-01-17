@@ -2,7 +2,7 @@ from django.db import models
 
 # Create your models here.
 class Item(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, validators=[])
     desc = models.TextField(blank=True)
     price = models.PositiveIntegerField()
     is_publish = models.BooleanField(default=False)
