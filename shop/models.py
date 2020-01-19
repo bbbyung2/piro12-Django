@@ -1,6 +1,9 @@
 from django.db import models
 
 # Create your models here.
+from mysite import settings
+
+
 class Item(models.Model):
     name = models.CharField(max_length=100, validators=[])
     desc = models.TextField(blank=True)
