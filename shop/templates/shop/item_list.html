@@ -1,26 +1,20 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Blog for Ask Company</title>
-</head>
-<body>
-<h1>Ask Company</h1>
-<form action="" method="GET">
-    <input type="text" name="q" value="{{ q }}" />
-    <input type="submit" value="search" />
-</form>
-<ul>
-    {% for item in item_list %}
-    <li>
-        {{ item.name }}
-        {{ item.price }}
-        {{ item.desc }}
-    </li>
-    {% endfor %}}
-</ul>
-</body>
-</html>
+{% extends "shop/layout.html" %}
+
+{% block content %}
+    <form action="" method="GET">
+        <input type="text" name="q" value="{{ q }}" />
+        <input type="submit" value="search" />
+    </form>
+    <ul>
+        {% for item in item_list %}
+        <li>
+            <a href="/shop/{{ item.pk }}/">
+                {{ item.name }}
+            </a>
+            {{ item.price }}
+            {{ item.desc }}
+        </li>
+        {% endfor %}}
+    </ul>
+{% endblock %}
+

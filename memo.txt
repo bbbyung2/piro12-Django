@@ -678,3 +678,121 @@ Ajax 내역도 출력 가능
 비즈니스 로직이 없는 Template
 간결한 View
 템플릿 기능에 제한을 둠으로서 비즈니스 로직을 템플릿 단에 구현함을 방지
+
+* 템플릿 엔진 활용 주요코드
+def render 에서 보통 request, template_name, context=None 지정
+
+* 장고의 빌트인 백엔드
+django.template.backends.django.DjangoTemplates
+장고에서의 일반적인 템플릿 엔진
+함수 호출은 가능, but 인자없는 함수만 가능
+함수 호출 시 소괄호 쓰지 않음, Callable Object라면 템플릿 엔진에서 알아서 호출
+
+* CBV에서의 템플릿 처리
+- django.template.response.SimpleTemplateResponse 클래스에서 로직 구현
+특정 CBV에서 template_name 인자 지정을 통한 템플릿 지정
+CBV 종류에 따라 모델 이름을 따라 template_name 자동 지정
+ListView의 Post 모델 -> 앱이름/post_list.html
+각 CBV마다의 기본 템플릿 경로를 활용하면 코드를 줄일 수 있음
+
+* settings.TEMPLATES 설정리스트
+● BACKEND:템플릿 엔진 지정
+● DIRS:템플릿을 둘 디렉토리 경로리스트 byFileSystemLoader
+● APP_DIRS:앱별 templates 경로 추가 여부 byAppDirectoryLoader
+● OPTIONS/context_processors
+- 템플릿 내에서 디폴트 참조할 변수목록을 제공하는 함수 목록
+- 인자로 request를 받고, dict을 반환
+
+* 최소한의 템플릿 settings
+각 앱들을 위한 템플릿은 각 앱/templates/ 경로에 배치 (장고 앱은 재사용성에 포커스가 맞춰져 있으므로)
+프로젝트 전반적으로 사용할 템플릿은 DIRS에 명시한 경로에 배치!
+
+* 장고 템플릿 태그/필터
+- 유틸리티 성격의 장고 템플릿 내에서 호출할 수 있는 함수 목록들
+    Django Template Tag {% 태그명 "인자1" "인자2" %}
+    Django Template Filter {{ 값|필터1:인자|필터2:인자|필터3 }}
+- 다양한 빌트인 템플릿 태그/필터가 제공
+    for/endfor, if/endif, include, load, verbatim
+- 커스텀 템플릿 태그/필터에 비지니스 로직 넣으면 x
+
+* 디폴트 에러 템플릿 경로
+django/views/defaults.py 내에서 다음 경로 지정
+400.html, 403.html, 404.html, 500.html
+위 파일들을 구현하지 않으면 '기본 흰바탕 까만글씨 에러화면' 출력
+
+21.장고가 템플릿 파일을 찾는 원리
+* Django Template Loader
+다수 디렉토리 목록에서 지정 상대경로를 가지는 템플릿을 찾아줌
+- 파일 시스템 로더 (1순위)
+settings.TEMPLATES의 DIRS=[] 설정에 의존
+지정 경로 리스트를 리스트에 추가
+- 앱 디렉토리 로더 (2순위)
+settings.TEMPLATES의 APP_DIRS=True 설정에 의존
+각 장고 앱 디렉토리 내, templates 경로를 리스트에 추가
+
+* 템플릿 디렉토리 리스트
+- 템플릿 로더는 서버가 시작할 때마다, 템플릿 로더 설정에 기반하여 템플릿 디렉토리 리스트 생성
+- find template 로직 수행 시에, 이미 생성된 템플릿 디렉토리 리스트에서 템플릿 순차적으로 찾음
+
+
+22.템플릿 상속을 통한 중복 제거
+* 템플릿 상속의 필요성
+- 각 뷰에 연결된 템플릿은 독립적으로 동작 (같은 레이아웃/스타일) -> 템플릿 코드 중복 발생
+- 코드 중복 해결 솔루션 -> 템플릿 상속
+
+* 템플릿 상속의 특징
+- 기본 특징
+상속은 여러 단계로 이뤄질 수 있음
+block에는 이름을 할당, 이름 통해 구분, 한 템플릿 내에서 그 이름은 유일해야 함
+- 부모 특징
+전체 레이아웃을 정의
+자식 템플릿이 비집고 들어올 수 있는 영역(block)을 다수 정의할 수 있다
+block이 없다면 자식 템플릿은 상속만 받을 뿐 어떠한 변경도 수행할 수 없음
+- 자식 템플릿
+상속받을 부모를 1개 지정할 수 있음
+상속받은 부모에서 정의한 block에 대해 block 내용을 재정의하여 그 내용을 추가/변경/제거
+    - block 바깥에 정의한 내용은 모두 무시
+    - 부모가 정의하지 않은 block을 재정의하여도 이는 무시
+
+* 사용하는 템플릿 태그
+● {% extends “부모템플릿경로” %}
+● {% block 블럭이름 %}블럭내용{% endblock %}
+    ○ 부모에서 사용하면, 블럭 정의
+    ○ 자식이 사용하면, 부모의 블록 재정의
+● {{block.super}}
+    ○ 자식 템플릿에서 사용할 때, 지정 위치에 부모 block 내용 출력
+
+* 2단계의 상속을 추천
+- 프로젝트 전반적인 레이아웃 템플릿 (layout.html)
+    - 각 앱 별 레이아웃 템플릿 (위 상속 받고)
+        - 템플릿 #1 (위 상속 받고)
+        - 템플릿 #1
+
+
+23.자주 사용하는 템플릿 필터
+* 장고 템플릿 필터
+함수 형태로 구현하여 템플릿에 등록
+템플릿 단에서 출력된 값에 대해서 값 변환이 필요할 때 (개행 적용, 숫자에 콤마, 소스코드 highlight)
+필터에서 취하는 인자 1~2개 (인자A : 변환할 값, 인자B : 추가 옵션)
+
+* add (정수 뿐 아니라 다양한 같은 타입에 대한 + 연산 지원)
+{{ value|add:"2" }}
+
+* cut (빈 문자열로 대체)
+{{ value|cut:" " }}
+
+* 유용한 값 처리
+- default : 값이 False 판정일 때, 지정한 디폴트값 사용 (default_if_none은 None일 때)
+    {{ value|default:"입력된 값이 없습니다." }}
+- filesizeformat (숫자를 파이르기로서 단위를 붙임)
+- join (문자열 join과 유사, 리스트를 하나로 합쳐서 표현하고자할 때)
+    ",".join(리스트)
+- linebreaks (1개 개행은 <br> 태그, 2개 개행은 <p> 태그로 변환)
+- linebreaksbr (모든 개행을 <br>태그로 변환)
+- pprint (pprint.pprint()래핑, 디버깅 목적의 출력)
+    {{ 값|pprint }}
+- truncatechars (지정 글자수만큼을 자르고 말줄임표를 붙임)
+    truncatecharts_html : 글자 단위로 html 요소를 살려서 자름
+    truncatewords : 단어 단위로 자름
+    truncatewords_html : 단어 단위로 html요소를 살려서 자름
+
