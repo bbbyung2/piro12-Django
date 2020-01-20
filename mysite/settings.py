@@ -23,9 +23,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '2mgmb*m@=evb5@$5@4c(=1gt24h%=x9ezld^1+#xx5ygr+85bz'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-
-ALLOWED_HOSTS = ['*']
+DEBUG = True
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -43,6 +42,7 @@ INSTALLED_APPS = [
 
     'shop',
     'blog',
+    'common',
 ]
 
 MIDDLEWARE = [
@@ -134,6 +134,7 @@ STATICFILES_DIRS = [
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 
 INTERNAL_IPS = [
     '127.0.0.1',
