@@ -796,3 +796,209 @@ block이 없다면 자식 템플릿은 상속만 받을 뿐 어떠한 변경도 
     truncatewords : 단어 단위로 자름
     truncatewords_html : 단어 단위로 html요소를 살려서 자름
 
+* URL 링크 만들기
+- urlize : URL과 이메일을 a 태그로 변환
+    URL은 링크 문자열이 필히 http://, https://, www.로 시작해야 함
+    최상위 도메인이 .com, .edu, .gov, .int, .mil, .net, .org 중 하나여야 함
+    생성된 링크에 rel="nofollow"가 추가 -> 크롤러에게 추적방지 요청
+    보다 유연한 링크 변환 위해 javascript 라이브러리 사용
+- urlizetrunc
+    urlize와 동일하지만, 링크 텍스트를 지정 길이로 자르기
+
+* escape 처리와 SafeText (서로 반대 개념)
+- escape : 문자열의 HTML요소를 변환
+    < (&lt), >(&gt;), 홑따옴표(&#39), 쌍따옴표(&quot;), &(&amp;)를 변환
+    장고 템플릿 언어에서는 디폴트로 escape 처리
+- safe : escape 처리되지 않도록, SafeText(str)로 래핑
+
+* date (지정 포맷으로 날짜 포맷팅)
+- 관련 settings
+1. DATE_FORMAT : 디폴트 "N j, Y" (예: "Feb. 4, 2003")
+2. DATETIME_FORMAT : 디폴트 "N j, Y, P" (예: "Feb. 4, 2003, 4 p.m.")
+3. SHORT_DATE_FORMAT : 디폴트 "m/d/Y" (예: "12/31/2003")
+4. SHORT_DATETIME_FORMAT : 디폴트 "m/d/Y P" (예: "12/31/2003 4 p.m.")
+위 포맷 중 택 1 하거나 커스텀 지정, 미 지정시에는 DATE_FORMAT으로 지정
+settings.USE_L10N=True 시에는 settings.LANGUAGE_CODE에 맞춰, 번역 사용
+
+* time (지정 포맷으로 시간 포맷팅)
+- 관련 settings
+1. TIME_FORMAT : 디폴트 "P" (예: "4 p.m")
+미 지정시에 TIME_FORMAT으로 지정
+settings.USE_L10N=True 시에는 settings.LANGUAGE_CODE에 맞춰, 번역 사용
+
+* json script 필터
+- 파이썬 객체를 JSON으로의 처리
+• 파이썬 문법과 JSON문자열 문법이 비슷한 측면이 있기에, 그대로 템플릿에 출력하여, 사용하기도 했었음.
+• django.core.serializers.json.DjangoJSONEncoder를 통한 json 직렬화
+• 변환된 JSON 문자열에 대해서, '>', '<', '&' 문자열 ESCAPE 처리 (XSS 공격 방지)
+
+
+24.자주 사용하는 템플릿 태그
+* 장고 템플릿 태그
+- 함수/클래스 형태로 구현하여 템플릿에 등록 (원하는 개수만큼, 템플릿에 따라 현재 템플릿 내 context를 받을 수 있음)
+- 단순 값 변환이 아닌 다양한 처리가 필요할 때(for/endfor, if/endif, ifchanged 등)
+- 필터에서 취하는 인자 (0개 이상~)
+
+* 기본 태그
+• extends : 템플릿 상속 {% extends "경로" %}
+• load : 빌트인 템플릿 태그/필터 외에 추가 로딩
+    - 각 장고앱의 templatetags/ 디렉토리 내, 파일명을 지정
+    (django/contrib/humanize/tempaltetags/humanize.py) - {% load humanize %} 가급적 상단에
+• include : 템플릿 가져오기 {% include "blog/_comment.html" %}
+    - 현재의 context가 그대로 전달.
+    - with옵션을 통해 추가 키워드 인자 전달
+        - only 추가 옵션을 통해 지정
+• block … endblock : 블락 영역 지정 (템플릿 상속에서 주로 사용)
+    - 템플릿 상속을 위한 영역 지정
+• comment … endcomment : 주석 영역 지정
+
+* 조건문/반복문
+• if … elif … else … endif : 조건문
+• ifchanged … endifchanged : 대상 값이 변경될 시에, 렌더링
+    - 인자없이 사용할 경우
+        - 대상 값 : 해당 블락에 속한 템플릿 내역
+    - 인자를 1개 이상 사용할 경우
+        - 대상 값 : 인자 목록
+• for … empty … endfor : 반복문
+    - empty는 해당 Iterable Object가 비었을 때, 수행
+
+* 템플릿 태그(1)
+• lorem : 무작위 채우기 텍스트 생성 (한글 로렘입숨 생성기)
+    - {% lorem 횟수 단어_단락_선택 랜덤여부 %}
+    - 횟수 : 디폴트 1
+    - 단어_단락_선택 : 단어(w), HTML단락(p), PlainText단락(b, 디폴트)
+• spaceless … endspaceless
+    - HTML 태그 사이의 공백을 모두 제거
+• url : URL Reverse
+• verbatim … endverbatim
+    - 해당 영역에 대해서 템플릿 엔진 처리를 하지 않습니다.
+
+* 템플릿 태그(2)
+• with … endwith
+    - 템플릿 단계에서 변수 생성 문법
+
+
+25.Static 파일을 다루는 방법
+* Static & Media 파일
+• Static 파일
+    - 개발 리소스로서의 정적인 파일 (js, css, image 등)
+    - 앱 / 프로젝트 단위로 저장/서빙
+• Media 파일
+    - FileField/ImageField를 통해 저장한 모든 파일
+    - DB필드에는 저장경로를 저장하며, 파일은 파일 스토리지에 저장
+    - 프로젝트 단위로 저장/서빙
+
+* Static 파일, 관련 settings 예시
+• 각설정의 디폴트 값
+    - STATIC_URL = None
+        - 각 static 파일에 대한 URL Prefix
+        - 템플릿 태그 {% static “경로” %} 에 의해서 참조되는 설정
+        - 항상 / 로 끝나도록 설정
+    - STATICFILES_DIRS = []
+        - File System Loader에 의해 참조되는 설정
+    - STATIC_ROOT = None
+        - python manage.py collectstatic 명령이 참조되는 설정
+        - 여러 디렉토리로 나눠진 static파일들을 이 경로의 디렉토리로 복사하여, 서빙
+        - 배포에서만 의미가 있는 설정
+
+* 추천 settings
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'askdjango', 'static'),
+]
+
+* Static Files Finders
+- Template Loader와 유사
+    설정된 Finders를 통해, static 템플릿이 있을 디렉토리 목록 구성
+        장고 서버 시작 시에만 1회 작성
+    디렉토리 목록에서 지정 상대경로를 가지는 static 파일 찾기
+- 대표적인 2가지 Static Files Finders
+• App Directories Finder
+    • “장고앱/static/” 경로를 “디렉토리 목록”에 추가
+• File System Finder
+    • settings.STATICFILES_DIRS 설정값을 “디렉토리 목록”에 추가
+
+* 템플릿에서 static URL 처리 예시 1
+방법1) settings.STATIC_URL, Prefix를 하드코딩
+하지만 설정은 언제라도/프로젝트마다 변경될 수 있음
+무엇보다 배포 시에 static_url 설정값이 변경됨
+
+* 템플릿에서 static URL 처리 예시 2
+방법2) Template Tag 를 통한 처리
+유연하게 static url prefix가 할당
+{% load static %}
+<img src="{% static "blog/title.png" %}" />
+
+* 개발환경에서의 static 파일 서빙
+- 개발 서버를 쓰고 and settings.DEBUG = True 일 때에만 지원
+    프로젝트/urls.py에 Rule이 명시되어 있지 않아도 자동 Rule추가
+    순수 개발목적으로만 제공
+- 개발서버를 쓰지 않거나, settings.DEBUG = False 일 때에는
+    별도로 static 서빙 설정
+
+* static 서빙을 하는 여러가지 방법
+1. 클라우드 정적 스토리지나 CDN 서비스를 활용
+2. apache/nginx 웹서버 등을 통한 서빙
+3. 장고를 통한 서빙
+• whitenoise 라이브러리 활용 (공식문서)
+
+* collectstatic 명령
+여러 디렉토리에 나눠져있는 static 파일들을 한 곳으로 복사
+    • 복사하는 대상 디렉토리 : settings.STATIC_ROOT
+    • 왜냐하면, 여러 디렉토리에 나눠 저장된 static 파일들의 위치는 “현재
+    장고 프로젝트” 만이 알고 있음. 외부 웹서버는 전혀 알지 못함.
+    • 외부 웹서버에서 Finder의 도움없이도 static 파일을 서빙하기 위함.
+    • 한 디렉토리에 모두 모여있기에, Finder의 도움이 필요가 없음
+
+* 외부 웹서버에 의한 static/media 컨텐츠 서비스
+정적인 컨텐츠는 외부 웹서버를 통해 처리하면 효율적인 처리
+정적 컨텐츠만의 최적화 방법 사용(memcache/redis 캐시 등, CDN)
+
+* 배포 시에 static 처리 프로세스
+1. “서비스용settings”에 배포 static 설정
+2. 관련 클라우드 스토리지 설정, 혹은 아파치/nginx static 설정
+3. 개발이 완료된 static파일을, 한 디렉토리로 복사
+    • python manage.py collectstatic --settings=서비스용settings
+    • Storage 설정에 따라, 한 번에 클라우드 스토리지로의 복사를 수행되기도 함.
+    • settings.STATIC_ROOT 경로로 복사됨.
+4. settings.STATIC_ROOT경로에 복사된 파일들을 배포서버로 복사
+    • 대상 : 클라우드 스토리지, 혹은 아파치/nginx에서 참조할 경로
+5. static 웹서버를 가리키토록 sesttings.STATIC_URL 수정
+
+
+26.Media 파일을 다루는 방법
+* Static & Media 파일
+• Media 파일
+    - FileField/ImageField를 통해 저장한 모든 파일
+    - DB필드에는 저장경로를 저장하며, 파일은 파일 스토리지에 저장 (실제로 문자열을 저장하는 필드)
+    - 프로젝트 단위로 저장/서빙
+
+* Media 파일 처리 순서
+1. HttpRequest.FILES를 통해 파일이 전달
+2. 뷰 로직이나 폼 로직을 통해, 유효성 검증을 수행하고,
+3. Field/ImageField 필드에 ”경로(문자열)”를 저장하고,
+4. settings.MEDIA_ROOT 경로에 파일을 저장합니다.
+
+*  Media 파일, 관련 settings 예시
+• 각 설정의 디폴트 값
+    - MEDIA_URL = “”
+        - 각 media 파일에 대한 URL Prefix
+            - 필드명.url 속성에 의해서 참조되는 설정
+    - MEDIA_ROOT = “”
+        - 파일필드를 통한 저장 시에, 실제 파일을 저장할 ROOT 경로
+
+* 추천 settings
+MEDIA_URL = ‘/media/’
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+* FileField와 ImageField
+•FileField (문자열 경로를 저장하는 Field)
+    • File Storage API를 통해 파일을 저장
+        • 장고에서는 File System Storage만 지원. django-storages를 통해 확장 지원.
+    • 해당 필드를 옵션 필드로 두고자 할 경우, blank=True 옵션 적용
+• ImageField (FileField 상속) - 간략하게 이미지 처리
+    • Pillow (이미지 처리 라이브러리)를 통해 이미지 width/height 획득
+        • Pillow 미설치 시에, ImageField를 추가한 makemigrations 수행에 실패합니다.
+• 위 필드를 상속받은 커스텀 필드를 만드실 수도 있습니다.
+    • ex) PDFField, ExcelField 등
