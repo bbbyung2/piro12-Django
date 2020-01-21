@@ -1108,3 +1108,128 @@ Dummy QueryString(주소 뒤에 ?로 시작하는 문자열)을 추가
     • 개발자도구를 연 후에, 새로고침 아이콘에서 우클릭
 
 * 커스텀 Template Tag를 통해 Dummy Query String을 붙여보기
+
+
+28.URL Reverse를 통해 유연하게 URL 생성하기
+* URL Dispatcher
+urls.py 변경만을 '각 뷰에 대한 URL'이 변경되는 유연한 URL 시스템
+
+* URL Reverse의 혜택
+개발자가 일일이 URL 계산하지 않아도 됨
+변경되더라도 URL Reverse가 변경된 URL 추적
+
+* URL 계산은 장고가..
+<a href="{% url "blog:post_list" %}">블로그 글 목록</a>
+
+* URL Reverse를 수행하는 4가지 함수
+• url 템플릿태그
+    • 내부적으로 reverse 함수를 사용
+• reverse 함수
+    • 매칭 URL이 없으면 NoReverseMatch 예외 발생
+• resolve_url 함수
+    • 매핑 URL이 없으면 "인자 문자열"을 그대로 리턴
+    • 내부적으로 reverse 함수를 사용
+• redirect 함수
+    • 매칭 URL이 없으면 "인자 문자열"을 그대로 URL로 사용
+    • 내부적으로 resolve_url 함수를 사용
+
+* 모델 클래스에 get_absolute_url() 구현
+resolve_url 함수는 가장 먼저 get_absolute_url() 함수의 존재 여부 체크
+존재할 경우 reverse 수행하지 않고 즉시 리턴
+
+app_name = 'shop' # URL Reverse 시의 namespace
+각각의 path마다 name을 정해줘야 하는데 보토오 view명과 똑같게
+
+In [1]: from django.shortcuts import resolve_url
+In [2]: from shop.models import Item
+In [3]: item = Item.objects.last()
+In [4]: item.get_absolute_url()
+Out[4]: '/shop/4/'
+In [5]: resolve_url(item)
+
+* 그 외 활용
+• CreateView / UpdateView (CBV)
+    • success_url(생성/수정 후 어딘가로 이동)을 제공하지 않을 경우, 해당 model instance 의
+      get_absolute_url 주소로 이동이 가능한지 체크하고, 이동이 가능할 경우 이동
+    • 생성/수정하고나서 Detail화면으로 이동하는 것은 자연스러운 시나리오
+• 특정 모델에 대한 Detail뷰를 작성할 경우
+    • Detail뷰에 대한 URLConf설정을 하자마자, 필히 get_absolute_url설정 (코드가 간결)
+
+
+29.장고 Form을 쓰지 않고, 글 생성/수정 구현하기
+* 장고 스타일로 Item New
+1) http://localhost:8000/shop/item/new/ 페이지 방문 (GET 요청)
+2) 빈 Form 화면을 보여줍니다.
+3) 유저가 Form을 채우고, 작성후에 "저장"을 요청합니다. (POST 요청)
+4) 입력값 유효성 검사를 한 후에,
+    a. 검사를 통과 못했을 경우에, 다시 Form을 보여주고 재입력을 요청
+    b. 검사를 통과했을 경우에, 데이터베이스에 저장하고, 다른 주소로 이동
+
+* 장고 스타일로 Item Edit
+1) http://localhost:8000/shop/item/<int:pk>/edit/ 페이지 방문 (GET 요청)
+2) 지정 pk의 Item이 없을 경우, 404 처리
+   Item이 있을 경우, Item 필드로 채운 Form 화면을 보여줍니다.
+3) 유저가 Form 내용을 변경하고, 작성후에 "저장"을 요청합니다. (POST 요청)
+4) 입력값 유효성 검사를 한 후에,
+    a. 검사를 통과 못했을 경우에, 다시 Form을 보여주고 재입력을 요청
+    b. 검사를 통과했을 경우에, 데이터베이스에 저장하고, 다른 주소로 이동
+
+
+30.장고 Form을 통해, 글 생성/수정 구현하기
+* Django Form
+Model 클래스와 유사하게 Form 클래스를 정의
+주요 역할 : 커스텀 Form 클래스를 통해
+    - 입력폼 HTML 생성
+    - 입력폼 값 검증(Validation) 및 값 변환
+    - 검증을 통과한 값들을 사전타입으로 제공
+
+* Django 스타일의 Form 처리
+폼 처리 시에 같은 URL(같은 View)에서 GET/POST로 나눠 처리
+- GET 방식 요청 (입력폼)
+- POST 방식 요청 (유효성 검증 과정)
+
+* 구현 순서
+• Form
+    • 생성할 Model에 맞춰 Form 클래스를 정의
+    • ModelForm을 이용하면, Model 내역에 맞게, 손쉽게 정의 가능
+• View
+    • Form 클래스를 활용하는, 범용 스타일로 구현
+    • 하나의 View에서 하나의 Form, 하나의 Model을 다룹니다.
+• Template
+    • 거의 모든 View를 커버할 수 있는, 범용 템플릿 코드로 구현
+    • 개별 Form 위젯에
+    • 물론 커스텀으로 만드실 수도 있습니다.
+
+
+31.다양한 구동환경을 위한 settings / requirements.txt 분기
+* 의존성 있는 라이브러리 관리
+프로젝트 세팅할 때마다 일일이 설치하는건 번거로우므로
+
+* requirements.txt
+- pip에서는 설치할 패키지 목록을 파일을 통한 지정 지원
+pip install -r requirements.txt
+
+* 실행환경에 따라 다양한 패키지 목록 필요
+
+* requirements.txt를 만들면
+공통, 개발용, 서비스 2.0 개발용, 배포용
+
+* settings란?
+다양한 프로젝트 설정을 담는 파이썬 소스 파일 (디폴트 설정을 기본으로, 지정 settings으로 재정의)
+장고 프로젝트 구동 시에 필히 DJANGO_SETTINGS_MODULE 환경변수를 통해 settings 위치 알려줘야 함
+
+* setdefault 동작
+os.environ은 dict과 유사한 인터페이스
+dict.setdefault(key, default=None)
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settins')
+
+* settings를 지정하는 2가지 방법
+1) DJANGO_SETTINGS_MODULE 환경변수로 지정하기
+    • 주의) OS마다/배포하는 방법마다 환경변수 세팅방법이 다릅니다.
+    • 별도로 지정하지 않으면, manage.py/wsgi.py에 세팅된 설정값이 적용
+2) manage.py 명령에서 --settings 옵션을 통해 지정하기
+    • 환경변수 설정에 우선합니다.
+    • 쉘> python manage.py 명령 --settings=askcompany.settings.prod_heroku
+
+* settings를 파이썬 패키지로 만들기 (디렉토리를 따로)
+- settings.py 내 BASE_DIR 설정은 상대경로로 프로젝트 ROOT 경로를 계산.

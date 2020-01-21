@@ -1,3 +1,1 @@
-#django==2.2.9
-#django-extensions==2.2.5
-
+-r reqs/prod_heroku.txt
